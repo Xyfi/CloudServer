@@ -58,12 +58,13 @@ bool ServerDatabase::getUserDetails(QString email, int machineId, QString *passw
 bool ServerDatabase::lockFile(QString directory, QString filename, int userId){
     QMutexLocker lock(&fileLocker);
     if(isFileLocked(directory, filename)){
+        qDebug() << "[ServerDatabase::lockFile] Allready locked";
         return false;
     }
     QString queryString = "INSERT OR REPLACE INTO Files(directory, filename, locked, ownedBy, deleted) VALUES(:directory, :filename, :locked, :ownedBy, 0)";
     QSqlQuery query(database);
     if(!query.prepare(queryString)){
-        qDebug() << query.lastError().text();
+        qDebug() << "[ServerDatabase::lockFile] Prepare failed" << query.lastError().text();
         return false;
     }
     query.bindValue(":directory", directory);

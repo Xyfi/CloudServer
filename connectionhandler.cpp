@@ -9,13 +9,11 @@ ConnectionHandler::ConnectionHandler(qintptr sockid, ServerDatabase *database) :
 
 ConnectionHandler::~ConnectionHandler()
 {
-    qDebug() << "socket deleted";
     delete socket;
 }
 
 void ConnectionHandler::run()
 {
-    qDebug() << "Handler started.";
     if(!initSocket()){
         qDebug() << "Initializing socket failed.";
         return;
@@ -28,7 +26,6 @@ void ConnectionHandler::run()
         qDebug() << "Handling message failed";
     }
     socket->close();
-    qDebug() << "Handler exited";
 }
 
 bool ConnectionHandler::initSocket(){
@@ -45,10 +42,8 @@ bool ConnectionHandler::handleAuthentication(){
     if(!userData.parseSuccess){
         authSuccess = false;
     } else if (!database->getUserDetails(userData.email, userData.machineId, &password, &userId)){
-        qDebug() << "FAIL" << password;
         authSuccess = false;
     } else if (!userData.password.compare(password) == 0) {
-        qDebug() << "FAIL" << password;
         authSuccess = false;
     } else {
         authSuccess = true;
@@ -117,10 +112,10 @@ bool ConnectionHandler::receiveFile(FileUploadRequest request){
         qDebug() << "Error while opening file.";
         return false;
     }
-    qDebug() << "Starting download" << info.filePath();
+    qDebug() << "Starting download" << info.filePath() << request.filesize << "bytes.";
 
     // Receive file
-    socket->waitForReadyRead(DEFAULT_TIMEOUT);
+
     char data[BUFFER_SIZE];
     quint64 receivedTotal = 0;
     quint64 received;
@@ -130,7 +125,6 @@ bool ConnectionHandler::receiveFile(FileUploadRequest request){
         }
         received = socket->read(data, BUFFER_SIZE);
         receivedTotal += received;
-        qDebug() << receivedTotal << "<" << request.filesize;
         file.write(data, received);
     }
     file.close();
@@ -139,6 +133,7 @@ bool ConnectionHandler::receiveFile(FileUploadRequest request){
     // Send response;
     socket->write(ServerResponseBuilder::buildBasicOkResponse(true));
     socket->waitForBytesWritten(DEFAULT_TIMEOUT);
+    qDebug() << "Response written";
     return true;
 }
 

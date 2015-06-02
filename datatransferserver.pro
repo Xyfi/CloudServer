@@ -9,7 +9,7 @@ QT       += core network sql
 QT       -= gui
 
 TARGET = datatransferserver
-
+CONFIG   += C++11
 CONFIG   += console
 CONFIG   -= app_bundle
 
