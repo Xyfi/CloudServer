@@ -31,7 +31,7 @@
     "locked NUMBER NOT NULL DEFAULT 0,"\
     "revisionNumber NUMBER DEFAULT 0,"\
     "deleted NUMBER DEFAULT 0,"\
-    "PRIMARY KEY(directory, filename),"\
+    "PRIMARY KEY(directory, filename, ownedBy),"\
     "FOREIGN KEY(lastUpdatedBy) REFERENCES UserMachines(id) ON DELETE NO ACTION ON UPDATE NO ACTION,"\
     "FOREIGN KEY(ownedby) REFERENCES Users(id) ON DELETE NO ACTION ON UPDATE NO ACTION"\
 ")"

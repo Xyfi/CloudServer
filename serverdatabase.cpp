@@ -72,7 +72,7 @@ bool ServerDatabase::lockFile(QString directory, QString filename, int userId){
     query.bindValue(":locked", 1);
     query.bindValue(":ownedBy", userId);
     if(!query.exec()){
-        qDebug() << query.lastError().text() << "LOCK";
+        qDebug() << "[ServerDatabase::lockFile] Exec failed" << query.lastError().text();
         return false;
     }
     return true;
@@ -80,7 +80,7 @@ bool ServerDatabase::lockFile(QString directory, QString filename, int userId){
 
 void ServerDatabase::updateAndUnlockFile(QString directory, QString filename, int userId, int machineId, bool deleted){
     QMutexLocker lock(&fileLocker);
-    QString queryString = "UPDATE Files SET locked = 0, lastUpdatedBy = :machineId, deleted = :deleted, revisionNumber = (Select MAX(revisionNumber) + 1 FROM Files WHERE ownedBy = :userId AND directory = :directory AND filename = :filename)";
+    QString queryString = "UPDATE Files SET locked = 0, lastUpdatedBy = :machineId, deleted = :deleted, revisionNumber = (Select MAX(revisionNumber) + 1 FROM Files WHERE ownedBy = :userId) WHERE ownedBy = :userId AND directory = :directory AND filename = :filename";
     QSqlQuery query(database);
     if(!query.prepare(queryString)){
         qDebug() << "[updateAndUnlockFile] Prepare failed.";
@@ -165,7 +165,7 @@ bool ServerDatabase::isFileLocked(QString directory, QString filename){
         return false;
     }
     if(query.value(0).toInt() != 0){
-
+        qDebug() << "[ServerDatabase::isFileLocked] File is locked.";
         return true;
     }
     return false;
