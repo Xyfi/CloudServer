@@ -19,6 +19,7 @@
 
 #define TABLE_USER_MACHINES "CREATE TABLE UserMachines("\
     "id INTEGER PRIMARY KEY AUTOINCREMENT,"\
+    "lastRevisionNumber INTEGER DEFAULT 0"\
     "userId INTEGER NOT NULL,"\
     "FOREIGN KEY(userId) REFERENCES Users(id) ON DELETE NO ACTION ON UPDATE NO ACTION"\
 ")"
@@ -55,7 +56,7 @@ public:
     bool lockFile(QString directory, QString filename, int userId);
     void updateAndUnlockFile(QString directory, QString filename, int userId, int machineId, bool deleted = false);
 
-    ChangesList getChangesList(int machineId, int sinceRevisionNumber);
+    ChangesList getChangesList(int machineId);
 private:
     QMutex fileLocker;
     QSqlDatabase database;
@@ -63,6 +64,7 @@ private:
     void registerMachine(int userId, int machineId);
     bool isFileLocked(QString directory, QString filename);
     void createTables();
+    void updateRevisionNumber(int machineId);
 
 signals:
 

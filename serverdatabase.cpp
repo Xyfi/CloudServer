@@ -99,17 +99,15 @@ void ServerDatabase::updateAndUnlockFile(QString directory, QString filename, in
     }
 }
 
-ChangesList ServerDatabase::getChangesList(int machineId, int sinceRevisionNumber){
-    QString queryString = "SELECT directory, filename, deleted, revisionNumber FROM Files WHERE revisionNumber > :sinceRevision AND lastUpdatedBy != :machineId ORDER BY revisionNumber ASC";
+ChangesList ServerDatabase::getChangesList(int machineId){
+    QString queryString = "SELECT directory, filename, deleted, revisionNumber FROM Files WHERE revisionNumber > (SELECT lastRevisionNumber FROM UserMachines WHERE machineId = :machineId) AND lastUpdatedBy != :machineId ORDER BY revisionNumber ASC";
     QSqlQuery query(database);
     ChangesList list;
-    qDebug() << "Getting changes for machineId" << machineId << "with revisionNumber" << sinceRevisionNumber;
     if(!query.prepare(queryString)){
         qDebug() << "[getChangesList] Prepare failed.";
         qDebug() << query.lastError().text();
         return list;
     }
-    query.bindValue(":sinceRevision", sinceRevisionNumber);
     query.bindValue(":machineId", machineId);
     if(!query.exec()){
         qDebug() << "[getChangesList] Exec failed.";
@@ -129,10 +127,25 @@ ChangesList ServerDatabase::getChangesList(int machineId, int sinceRevisionNumbe
     }
     list.nChanges = counter;
     list.changes = fileChanges;
+    updateRevisionNumber(machineId);
     return list;
 }
 
 // PRIVATE FUNCTIONS
+
+void ServerDatabase::updateRevisionNumber(int machineId){
+    QString queryString = "UPDATE UserMachines SET lastRevisionNumber = (SELECT MAX(revisionNumber) FROM Files WHERE userId = (SELECT userId FROM UserMachines WHERE id = :machineId)) WHERE id = :machineId";
+    QSqlQuery query(database);
+    if(!query.prepare(queryString)){
+        qDebug() << "[ServerDatabase::updateRevisionNumber] Prepare failed.";
+        qDebug() << query.lastError().text();
+    }
+    query.bindValue(":machineId", machineId);
+    if(!query.exec()){
+        qDebug() << "[ServerDatabase::updateRevisionNumber] Exec failed.";
+        qDebug() << query.lastError().text();
+    }
+}
 
 void ServerDatabase::registerMachine(int userId, int machineId){
     qDebug() << "Registering machine";

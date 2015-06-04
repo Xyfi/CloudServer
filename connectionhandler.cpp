@@ -211,7 +211,7 @@ bool ConnectionHandler::getFileChanges(FileChangesRequest request){
         socket->waitForBytesWritten(DEFAULT_TIMEOUT);
         return false;
     }
-    ChangesList list = database->getChangesList(machineId, request.revisionNumber);
+    ChangesList list = database->getChangesList(machineId);
     socket->write(ServerResponseBuilder::buildChangedFilesResponse(true, list.nChanges, list.revisionNumber));
     socket->waitForBytesWritten(DEFAULT_TIMEOUT);
     while(list.changes.size() > 0){
